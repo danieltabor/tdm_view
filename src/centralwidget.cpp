@@ -79,7 +79,7 @@ void CentralWidget::newSettings() {
 }
 
 void CentralWidget::wheelEvent(QWheelEvent* event) {
-    int delta = event->delta();
+    int delta = event->angleDelta().y();
     int zoom = m_settings->zoom();
     if( delta > 0 ) { zoom = zoom + 1; }
     else if( delta < 0 ) { zoom = zoom - 1; }

@@ -32,7 +32,9 @@ CaptureFile_BitPerBit::CaptureFile_BitPerBit(QString path, bool invert): Capture
     m_fileSize = ftell(m_fp)*8;
     fseek(m_fp,0,SEEK_SET);
     m_invert = invert;
-    fread(&m_currentByte,1,1,m_fp);
+    if( !fread(&m_currentByte,1,1,m_fp) ) {
+        m_currentByte = 0;
+    }
     m_bitOffset = 0;
     m_invert = invert;
 }
@@ -46,7 +48,9 @@ size_t CaptureFile_BitPerBit::tellbit() {
 }
 void CaptureFile_BitPerBit::seekbit(size_t offset) {
     fseek(m_fp,offset/8,SEEK_SET);
-    fread(&m_currentByte,1,1,m_fp);
+    if( !fread(&m_currentByte,1,1,m_fp) ) {
+        m_currentByte = 0;
+    }
     m_bitOffset = offset%8;
 }
 
@@ -68,8 +72,9 @@ QBitArray* CaptureFile_BitPerBit::readbit(size_t readlen) {
         m_bitOffset++;
         if( m_bitOffset == 8 ) {
             m_bitOffset = 0;
-            m_currentByte = 0;
-            fread(&m_currentByte,1,1,m_fp);
+            if( !fread(&m_currentByte,1,1,m_fp) ) {
+                m_currentByte = 0;
+            }
         }
     }
     return bits;

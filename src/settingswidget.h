@@ -67,18 +67,24 @@ signals:
 
 private:
     QLabel* m_tsl;
-    QSpinBox* m_tsw;
+    QLineEdit* m_tsw;
+    int m_ts;
     QLabel* m_bptsl;
-    QSpinBox* m_bptsw;
+    QLineEdit* m_bptsw;
+    int m_bpts;
     QLabel* m_fpll;
-    QSpinBox* m_fplw;
+    QLineEdit* m_fplw;
+    int m_fpl;
     QLabel* m_offsetl;
-    QSpinBox* m_offsetw;
+    QLineEdit* m_offsetw;
+    int m_offset;
     //QLineEdit* m_syncw;
     //QString m_syncv;
     QLabel* m_zooml;
     QSpinBox* m_zoomw;
     QPushButton* m_updateButton;
+    QPalette *m_errpal;
+    QPalette *m_okpal;
     bool m_autov;
     bool m_tdmv;
 };

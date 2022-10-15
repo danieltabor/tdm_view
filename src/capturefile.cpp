@@ -36,6 +36,6 @@ QString CaptureFile::fileName() {
 
 CaptureFile::~CaptureFile() {}
 size_t CaptureFile::tellbit() { return 0; }
-void CaptureFile::seekbit(size_t offset) { }
+void CaptureFile::seekbit(size_t offset) { Q_UNUSED(offset); }
 size_t CaptureFile::sizebit() { return 0; }
-QBitArray* CaptureFile::readbit(size_t readlen) { return 0; }
+QBitArray* CaptureFile::readbit(size_t readlen) { Q_UNUSED(readlen); return 0; }

@@ -54,6 +54,7 @@ QBitArray* CaptureFile_BytePerBit::readbit(size_t readlen) {
     char buf[1024];
     size_t block_size;
     size_t bits_size = 0;
+    size_t read_size;
     size_t i;
     QBitArray *bits = new QBitArray(readlen);
     while( bits_size < readlen ) {
@@ -63,14 +64,14 @@ QBitArray* CaptureFile_BytePerBit::readbit(size_t readlen) {
             block_size = 1024;
         }
         memset(buf,0,1024);
-        fread(buf,1,block_size,m_fp);
-        for( i=0; i<block_size; i++ ) {
+        read_size = fread(buf,1,block_size,m_fp);
+        for( i=0; i<read_size; i++ ) {
             if( (buf[i] && !m_invert) ||
                 (!buf[i] && m_invert) ) {
                 bits->setBit(bits_size+i,true);
             }
         }
-        bits_size = bits_size + block_size;
+        bits_size = bits_size + read_size;
     }
     return bits;
 }
