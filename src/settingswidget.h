@@ -32,6 +32,7 @@
 #include<QSpinBox>
 #include<QString>
 #include<QPushButton>
+#include<QPalette>
 
 class SettingsWidget: public QWidget
 {
@@ -52,8 +53,15 @@ public:
     //QString sync();
     int zoom();
     void setZoom(int zoom);
+    int rbpp();
+    void setRbpp(int rbpp);
+    int gbpp();
+    void setGbpp(int gbpp);
+    int bbpp();
+    void setBbpp(int bbpp);
     bool autoUpdate();
     void setAutoUpdate(bool autoUpdate);
+    void setEnableColors(bool enableColors);
     void setTdmMode();
     void setBinMode();
 
@@ -82,6 +90,15 @@ private:
     //QString m_syncv;
     QLabel* m_zooml;
     QSpinBox* m_zoomw;
+    QLabel* m_rbppl;
+    QSpinBox* m_rbppw;
+    int m_rbpp;
+    QLabel* m_gbppl;
+    QSpinBox* m_gbppw;
+    int m_gbpp;
+    QLabel* m_bbppl;
+    QSpinBox* m_bbppw;
+    int m_bbpp;
     QPushButton* m_updateButton;
     QPalette *m_errpal;
     QPalette *m_okpal;

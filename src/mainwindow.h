@@ -51,6 +51,7 @@ public:
     void setBitPerByte();
     void setBytePerByte();
     void setAutoUpdate(bool autoUpdate);
+    void setEnableColors(bool enableColors);
     void setTdmMode();
     void setBinMode();
     void openSpecifiedFile(QString path);
@@ -69,6 +70,7 @@ public slots:
     void setFileType();
     void setInvert();
     void setAutoUpdate();
+    void setEnableColors();
     void setSettingsMode();
     void showInfo(QString label, QString data);
 
@@ -82,6 +84,7 @@ private:
     QAction* m_invert;
     QActionGroup* m_file_type_group;
     QAction* m_auto_update;
+    QAction* m_enable_colors;
     QAction *m_tdm_mode;
     QAction *m_bin_mode;
     QActionGroup* m_mode_group;

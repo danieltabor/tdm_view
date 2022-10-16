@@ -40,6 +40,9 @@ RasterWidget::RasterWidget(QWidget *parent) : QWidget(parent)
     m_fpl = 1;
     m_foffset = 0;
     m_zoom = 1;
+    m_rbpp = 0;
+    m_gbpp = 1;
+    m_bbpp = 0;
     m_hoffset = 0;
     m_voffset = 0;
     m_captureFile = 0;
@@ -86,6 +89,15 @@ void RasterWidget::setZoom(unsigned int zoom) {
     }
 }
 
+void RasterWidget::setBitsPerPixels(unsigned int rbpp, unsigned int gbpp, unsigned int bbpp) {
+    if( m_rbpp != rbpp || m_gbpp != gbpp || m_bbpp != bbpp ) {
+        m_rbpp = rbpp;
+        m_gbpp = gbpp;
+        m_bbpp = bbpp;
+        calculateSizes();
+    }
+}
+
 void RasterWidget::setHorizontalOffset(int offset) {
     if( (unsigned int)offset != m_hoffset ) {
         m_hoffset = (unsigned int)offset;
@@ -113,6 +125,7 @@ void RasterWidget::calculateSizes() {
         m_totalBitWidth = 0;
         m_tsBitWidth = 0;
         m_frameBitWidth = 0;
+        m_totalBitsPerPixel = m_rbpp + m_gbpp + m_bbpp;
         m_tsPixelWidth = 1;
         m_totalPixelWidth = 0;
         m_totalPixelHeight = 0;
@@ -121,7 +134,14 @@ void RasterWidget::calculateSizes() {
         m_totalBitWidth = m_bpts*m_ts*m_fpl;
         m_tsBitWidth = m_bpts*m_fpl;
         m_frameBitWidth = m_ts*m_bpts;
-        m_tsPixelWidth = m_tsBitWidth+1;
+        m_totalBitsPerPixel = m_rbpp + m_gbpp + m_bbpp;
+        m_tsPixelWidth = m_tsBitWidth/m_totalBitsPerPixel;
+        if( m_tsBitWidth % m_totalBitsPerPixel ) {
+            //Plus 1 for remainder bits
+            m_tsPixelWidth = m_tsPixelWidth + 1;
+        }
+        //Plus 1 for buffer between time slots
+        m_tsPixelWidth = m_tsPixelWidth + 1;
         m_totalPixelWidth = m_tsPixelWidth*m_ts-1;
         m_totalPixelHeight = (m_captureFile->sizebit()-m_foffset) / m_totalBitWidth;
     }
@@ -142,7 +162,7 @@ void RasterWidget::mouseMoveEvent(QMouseEvent* event) {
 void RasterWidget::mouseDoubleClickEvent(QMouseEvent *event) {
     size_t line = (event->y()/m_zoom)+m_voffset;
     size_t ts = ((event->x()/m_zoom)+m_hoffset) / m_tsPixelWidth;
-    qDebug() << event->x() << " " << event->x()/m_zoom << " " << m_hoffset;
+    //qDebug() << event->x() << " " << event->x()/m_zoom << " " << m_hoffset;
     size_t fileLineOffset = m_foffset + line*m_totalBitWidth;
     size_t frame;
     int i;
@@ -205,17 +225,19 @@ void RasterWidget::saveEntireRaster(QString path, QProgressDialog* dlg) {
 }
 
 void RasterWidget::paintRaster(QPaintDevice* target, size_t vOffset, size_t hOffset, size_t zoom, QProgressDialog* dlg) {
-    unsigned int y,x,line,frame,ts;
-    int i;
+    unsigned int y,line,frame,ts,pixel,bitOffset,bit;
+    int i, x;
     size_t baseFileOffset = m_foffset+m_totalBitWidth*vOffset;
     size_t lineOffset;
-    unsigned int minVisibleTS = hOffset / m_tsPixelWidth;
-    unsigned int maxVisibleTS = minVisibleTS;
-    for( i=((minVisibleTS*m_tsPixelWidth) - hOffset)*zoom;
-         i<target->width() && maxVisibleTS < m_ts;
-         i=i+m_tsPixelWidth*zoom, maxVisibleTS++);
+    //unsigned int minVisibleTS = hOffset / m_tsPixelWidth;
+    //unsigned int maxVisibleTS = minVisibleTS;
+    //for( i=((minVisibleTS*m_tsPixelWidth) - hOffset)*zoom;
+    //     i<target->width() && maxVisibleTS < m_ts;
+    //     i=i+m_tsPixelWidth*zoom, maxVisibleTS++);
     unsigned int visibleLineCount = (target->height() / zoom)+1;
-    QBitArray* bits;
+    QBitArray* lineBits;
+    QBitArray  bufBits;
+    QBitArray* tsBits;
 
     if( dlg != 0 ) {
         dlg->setMinimum(0);
@@ -228,20 +250,30 @@ void RasterWidget::paintRaster(QPaintDevice* target, size_t vOffset, size_t hOff
 
     QBrush blackBrush(QColor(0,0,0,0xFF));
     QBrush whiteBrush(QColor(0xFF,0xFF,0xFF,0xFF));
-    QBrush greenBrush(QColor(0,0xFF,00,0xFF));
     QBrush grayBrush(QColor(0x80,0x80,0x80,0xFF));
+    unsigned int maxRed   = m_rbpp==32?0xFFFFFFFF:(1<<m_rbpp)-1;
+    unsigned int maxGreen = m_gbpp==32?0xFFFFFFFF:(1<<m_gbpp)-1;
+    unsigned int maxBlue  = m_bbpp==32?0xFFFFFFFF:(1<<m_bbpp)-1;
+    unsigned int red;
+    unsigned int green;
+    unsigned int blue;
+    QBrush pixelBrush(QColor(0,0xFF,0,0xFF));
 
     painter.fillRect(0,0,target->width(),target->height(),grayBrush);
 
     if( m_captureFile ){
         //Draw white lines to seperate timeslots
-        for( ts=minVisibleTS; ts<maxVisibleTS; ts++ ) {
-            if( ts < m_ts-1 ) {
-                x = (((ts+1)*m_tsPixelWidth)-1-hOffset)*zoom;
-                painter.fillRect(x,0,zoom,target->height(),whiteBrush);
-            }
+        //for( ts=minVisibleTS; ts<maxVisibleTS; ts++ ) {
+        for( ts=1; ts<m_ts; ts++ ) {
+            //if( ts < m_ts-1 ) {
+
+            x = (ts*m_tsPixelWidth-1-hOffset)*zoom; // (((ts+1)*m_tsPixelWidth)-1-hOffset)*zoom;
+            if( x < 0 ) { continue; }
+            if( x >= target->width() ) { break; }
+            painter.fillRect(x,0,zoom,target->height(),whiteBrush);
+            //}
         }
-        //Draw green pixels (with zoom)
+        //Draw pixels (with zoom)
         for( line=0; line<visibleLineCount; line++ ) {
             if( dlg != 0 ) {
                 dlg->setValue(line);
@@ -255,6 +287,61 @@ void RasterWidget::paintRaster(QPaintDevice* target, size_t vOffset, size_t hOff
                 painter.fillRect(0,y,target->width(),target->height()-y,grayBrush);
                 break;
             }
+            m_captureFile->seekbit(lineOffset);
+            lineBits = m_captureFile->readbit(m_totalBitWidth);
+            //for( ts=minVisibleTS; ts<maxVisibleTS; ts++ ) {
+            for( ts=0; ts<m_ts; ts++ ) {
+                //Make tsBits big enough to generate all of the pixel for a time slot
+                //if the bpp needed is more than the bit represented then we will use
+                //the extra zeros provided by resize to generate the pixel color
+                if( m_ts == 1 ) {
+                    tsBits = lineBits;
+                } else {
+                    bufBits.clear();
+                    bufBits.resize((m_tsPixelWidth-1)*m_totalBitsPerPixel);
+                    bitOffset = 0;
+                    for( frame=0; frame<m_fpl; frame++ ) {
+                        i = m_ts*m_bpts*frame + ts*m_bpts;
+                        for( bit=0; bit<m_bpts; bit++ ) {
+                            bufBits.setBit(bitOffset++,lineBits->testBit(i+bit));
+                        }
+                    }
+                    tsBits = &bufBits;
+                }
+                x = ((ts*m_tsPixelWidth) - hOffset)*zoom;
+                bitOffset = 0;
+                for( pixel=0; pixel<m_tsPixelWidth-1; pixel++, x=x+zoom ) {
+                    if( x < 0 ) { bitOffset=bitOffset+m_totalBitsPerPixel; continue; }
+                    else if( x >= target->width() ) { break; }
+                    red = 0;
+                    for( bit=0; bit<m_rbpp; bit++ ) {
+                        red = (red<<1) | tsBits->testBit(bitOffset++);
+                    }
+                    if( red ) {
+                        red = (unsigned int)( ((double)red / (double)maxRed)*255 ) & 0xFF;
+                    }
+                    green = 0;
+                    for( bit=0; bit<m_gbpp; bit++ ) {
+                        green = (green<<1) | tsBits->testBit(bitOffset++);
+                    }
+                    if( green ) {
+                        green = (unsigned int)( ((double)green / (double)maxGreen)*255 ) & 0xFF;
+                    }
+                    blue = 0;
+                    for( bit=0; bit<m_bbpp; bit++ ) {
+                        blue = (blue<<1) | tsBits->testBit(bitOffset++);
+                    }
+                    if( blue ) {
+                        blue = (unsigned int)( ((double)blue / (double)maxBlue)*255 ) & 0xFF;
+                    }
+                    pixelBrush.setColor(QColor(red,green,blue,0xFF));
+                    painter.fillRect(x,y,zoom,zoom,pixelBrush);
+                }
+                if( x >= target->width() ) { break; }
+            }
+            delete lineBits;
+
+            /*
             for( frame=0; frame<m_fpl; frame++ ) {
                 for( ts=minVisibleTS; ts<maxVisibleTS; ts++ ) {
                      m_captureFile->seekbit(lineOffset + frame*m_frameBitWidth + ts*m_bpts );
@@ -271,6 +358,7 @@ void RasterWidget::paintRaster(QPaintDevice* target, size_t vOffset, size_t hOff
                      delete bits;
                 }
             }
+            */
         }
     }
     painter.end();

@@ -26,6 +26,7 @@
 #include "settingswidget.h"
 #include <QGridLayout>
 #include <QIntValidator>
+#include <QColor>
 #include "tinyexpr.h"
 
 SettingsWidget::SettingsWidget(QWidget *parent):
@@ -84,6 +85,43 @@ SettingsWidget::SettingsWidget(QWidget *parent):
     connect(m_zoomw,SIGNAL(valueChanged(QString)),this,SLOT(updateHandler()));
     layout->addWidget(m_zoomw,1,5);
 
+    m_rbppl = new QLabel("Red bits per pixel:");
+    m_rbppl->setVisible(false);
+    layout->addWidget(m_rbppl,2,0);
+    m_rbppw = new QSpinBox(this);
+    m_rbppw->setVisible(false);
+    m_rbppw->setValue(false);
+    m_rbppw->setMinimum(0);
+    m_rbppw->setMaximum(32);
+    m_rbppw->setValue(0);
+    m_rbpp = 0;
+    connect(m_rbppw,SIGNAL(valueChanged(QString)),this,SLOT(updateHandler()));
+    layout->addWidget(m_rbppw,2,1);
+
+    m_gbppl = new QLabel("Green bits per pixel:");
+    m_gbppl->setVisible(false);
+    layout->addWidget(m_gbppl,2,2);
+    m_gbppw = new QSpinBox(this);
+    m_gbppw->setVisible(false);
+    m_gbppw->setMinimum(0);
+    m_gbppw->setMaximum(32);
+    m_gbppw->setValue(1);
+    m_gbpp = 1;
+    connect(m_gbppw,SIGNAL(valueChanged(QString)),this,SLOT(updateHandler()));
+    layout->addWidget(m_gbppw,2,3);
+
+    m_bbppl = new QLabel("Blue bits per pixel:");
+    m_bbppl->setVisible(false);
+    layout->addWidget(m_bbppl,2,4);
+    m_bbppw = new QSpinBox(this);
+    m_bbppw->setVisible(false);
+    m_bbppw->setMinimum(0);
+    m_bbppw->setMaximum(32);
+    m_bbppw->setValue(0);
+    m_bbpp = 0;
+    connect(m_bbppw,SIGNAL(valueChanged(QString)),this,SLOT(updateHandler()));
+    layout->addWidget(m_bbppw,2,5);
+
     m_updateButton = new QPushButton("Update",this);
     layout->addWidget(m_updateButton,1,6);
     connect(m_updateButton,SIGNAL(clicked()),this,SLOT(updateEmit()));
@@ -93,7 +131,7 @@ SettingsWidget::SettingsWidget(QWidget *parent):
 
     m_okpal = new QPalette(m_tsw->palette());
     m_errpal = new QPalette(m_tsw->palette());
-    m_errpal->setColor(QPalette::Text,QColorConstants::Red);
+    m_errpal->setColor(QPalette::Text,Qt::red);
 
 }
 
@@ -142,6 +180,19 @@ void SettingsWidget::updateEmit() {
         m_offsetw->setPalette(*m_errpal);
     }
 
+    if( m_rbppw->value() || m_gbppw->value() || m_bbppw->value() ) {
+        m_rbpp = m_rbppw->value();
+        m_rbppw->setPalette(*m_okpal);
+        m_gbpp = m_gbppw->value();
+        m_gbppw->setPalette(*m_okpal);
+        m_bbpp = m_bbppw->value();
+        m_bbppw->setPalette(*m_okpal);
+    } else {
+        m_rbppw->setPalette(*m_errpal);
+        m_gbppw->setPalette(*m_errpal);
+        m_bbppw->setPalette(*m_errpal);
+    }
+
     m_updateButton->setEnabled(false);
     emit update();
 }
@@ -155,7 +206,7 @@ void SettingsWidget::setTs(int ts) {
     if( ts >= 1 ) {
         m_tsw->setText(QString::number(ts));
         if( ts != m_ts ) {
-            emit update();
+            updateEmit();
         }
     }
 }
@@ -168,7 +219,7 @@ void SettingsWidget::setBpts(int bpts) {
     if( bpts >= 1 ) {
         m_bptsw->setText(QString::number(bpts));
         if( bpts != m_bpts ) {
-            emit update();
+            updateEmit();
         }
     }
 }
@@ -189,7 +240,7 @@ void SettingsWidget::setFpl(int fpl) {
     if( fpl >= 1 ) {
         m_fplw->setText(QString::number(fpl));
         if( fpl != m_fpl ) {
-            emit update();
+            updateEmit();
         }
     }
 }
@@ -202,7 +253,7 @@ void SettingsWidget::setOffset(int offset) {
     if( offset >= 0 ) {
         m_offsetw->setText(QString::number(offset));
         if( offset != m_offset ) {
-            emit update();
+            updateEmit();
         }
     }
 }
@@ -222,6 +273,39 @@ void SettingsWidget::setZoom(int zoom) {
     }
 }
 
+int SettingsWidget::rbpp() {
+    return m_rbpp;
+}
+
+void SettingsWidget::setRbpp(int rbpp) {
+    if( rbpp != m_rbpp && rbpp >= 0 ) {
+        m_rbppw->setValue(rbpp);
+        updateEmit();
+    }
+}
+
+int SettingsWidget::gbpp() {
+    return m_gbpp;
+}
+
+void SettingsWidget::setGbpp(int gbpp) {
+    if( gbpp != m_gbpp && gbpp >= 0 ) {
+        m_gbppw->setValue(gbpp);
+        updateEmit();
+    }
+}
+
+int SettingsWidget::bbpp() {
+    return m_bbpp;
+}
+
+void SettingsWidget::setBbpp(int bbpp) {
+    if( bbpp != m_bbpp && bbpp >= 0 ) {
+        m_bbppw->setValue(bbpp);
+        updateEmit();
+    }
+}
+
 bool SettingsWidget::autoUpdate() {
     return m_autov;
 }
@@ -230,12 +314,28 @@ void SettingsWidget::setAutoUpdate(bool autoUpdate) {
     m_autov = autoUpdate;
 }
 
+void SettingsWidget::setEnableColors(bool enableColors) {
+    m_rbppl->setVisible(enableColors);
+    m_rbppw->setVisible(enableColors);
+    m_gbppl->setVisible(enableColors);
+    m_gbppw->setVisible(enableColors);
+    m_bbppl->setVisible(enableColors);
+    m_bbppw->setVisible(enableColors);
+    if( ! enableColors && (m_rbpp != 0 || m_gbpp != 1 || m_bbpp != 0) ) {
+        m_rbpp = 0;
+        m_gbpp = 1;
+        m_bbpp = 0;
+        emit update();
+    }
+}
+
 void SettingsWidget::setTdmMode() {
     m_tsl->setVisible(true);
     m_tsw->setVisible(true);
     m_fpll->setVisible(true);
     m_fplw->setVisible(true);
     m_bptsl->setText("Bits per Timeslot:");
+    emit update();
 }
 
 
@@ -251,4 +351,12 @@ void SettingsWidget::setBinMode() {
     m_bptsl->setText("Bits per Line:");
     emit update();
 }
+
+/*
+void SettingsWidget::setRGBMode() {
+    m_ts = 3;
+    m_tsw->setText(QString::number(m_ts));
+
+}
+*/
 

@@ -43,6 +43,7 @@ public:
     void setFramesPerLine(unsigned int fpl);
     void setFileOffset(unsigned int offset);
     void setZoom(unsigned int zoom);
+    void setBitsPerPixels(unsigned int rbpp, unsigned int gbpp, unsigned int bbpp);
     unsigned int horizontalMaximum();
     unsigned int verticalMaximum();
 
@@ -72,20 +73,24 @@ protected:
 
 private:
     CaptureFile* m_captureFile;
-    unsigned int m_ts;
-    unsigned int m_bpts;
-    unsigned int m_fpl;
-    unsigned int m_foffset;
+    unsigned int m_ts;      //Number of time slots
+    unsigned int m_bpts;    //Bits per time slot
+    unsigned int m_fpl;     //Frames per line
+    unsigned int m_foffset; //File offset
     unsigned int m_zoom;
+    unsigned int m_rbpp;    //Red bits per pixel
+    unsigned int m_gbpp;    //Green bits per pixel
+    unsigned int m_bbpp;    //Blue bits per pixel
     unsigned int m_hoffset;
     unsigned int m_voffset;
 
-    unsigned int m_totalBitWidth;
-    unsigned int m_tsBitWidth;
-    unsigned int m_frameBitWidth;
-    unsigned int m_tsPixelWidth;
-    unsigned int m_totalPixelWidth;
-    unsigned int m_totalPixelHeight;
+    unsigned int m_totalBitWidth;     //Total bits represented per line
+    unsigned int m_tsBitWidth;        //Total bits represented in a single timeslot per line
+    unsigned int m_frameBitWidth;     //Total bits that represent a single frame in the file
+    unsigned int m_totalBitsPerPixel; //Total number of bits represented by each pixel
+    unsigned int m_tsPixelWidth;      //Total pixels needed to represent each timeslot (with 1 for a buffer)
+    unsigned int m_totalPixelWidth;   //Total pixels per line
+    unsigned int m_totalPixelHeight;  //Total lines
 
     void calculateSizes();
     void paintRaster(QPaintDevice* target, size_t vOffset, size_t hOffset, size_t zoom, QProgressDialog* dlg = 0);

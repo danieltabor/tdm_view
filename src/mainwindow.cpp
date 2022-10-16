@@ -88,6 +88,11 @@ MainWindow::MainWindow(QWidget *parent) :
     m_auto_update->setChecked(false);
     connect(m_auto_update,SIGNAL(triggered()),this,SLOT(setAutoUpdate()));
     uiMenu->addSeparator();
+    m_enable_colors = uiMenu->addAction("&Color Channels");
+    m_enable_colors->setCheckable(true);
+    m_enable_colors->setChecked(false);
+    connect(m_enable_colors,SIGNAL(triggered()),this,SLOT(setEnableColors()));
+    uiMenu->addSeparator();
     m_tdm_mode = uiMenu->addAction("&TDM Mode");
     m_tdm_mode->setCheckable(true);
     m_tdm_mode->setChecked(true);
@@ -137,6 +142,11 @@ void MainWindow::setBytePerByte() {
 void MainWindow::setAutoUpdate(bool autoUpdate) {
     m_auto_update->setChecked(autoUpdate);
     m_central->settings()->setAutoUpdate(autoUpdate);
+}
+
+void MainWindow::setEnableColors(bool enableColors) {
+    m_enable_colors->setChecked(enableColors);
+    m_central->settings()->setEnableColors(enableColors);
 }
 
 void MainWindow::setTdmMode() {
@@ -313,6 +323,10 @@ void MainWindow::setInvert() {
 
 void MainWindow::setAutoUpdate() {
     m_central->settings()->setAutoUpdate(m_auto_update->isChecked());
+}
+
+void MainWindow::setEnableColors() {
+    m_central->settings()->setEnableColors(m_enable_colors->isChecked());
 }
 
 void MainWindow::setSettingsMode() {

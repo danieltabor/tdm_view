@@ -41,7 +41,8 @@ CentralWidget::CentralWidget(QWidget *parent) : QWidget(parent)
 
     QGridLayout* rasterLayout = new QGridLayout();
     m_raster = new RasterWidget(this);
-    m_vscroll = new QScrollBar(Qt::Vertical,this);    connect(m_vscroll,SIGNAL(valueChanged(int)),m_raster,SLOT(setVerticalOffset(int)));
+    m_vscroll = new QScrollBar(Qt::Vertical,this);
+    connect(m_vscroll,SIGNAL(valueChanged(int)),m_raster,SLOT(setVerticalOffset(int)));
     m_hscroll = new QScrollBar(Qt::Horizontal,this);
     connect(m_hscroll,SIGNAL(valueChanged(int)),m_raster,SLOT(setHorizontalOffset(int)));
     rasterLayout->addWidget(m_raster,0,0);
@@ -57,8 +58,8 @@ CentralWidget::CentralWidget(QWidget *parent) : QWidget(parent)
 
 void CentralWidget::setCaptureFile(CaptureFile* captureFile) {
     m_captureFile = captureFile;
-    calcSizes();
     m_raster->setCaptureFile(captureFile);
+    calcSizes();
 }
 
 RasterWidget* CentralWidget::raster() {
@@ -70,12 +71,13 @@ SettingsWidget* CentralWidget::settings() {
 }
 
 void CentralWidget::newSettings() {
-    calcSizes();
     m_raster->setTimeSlots(m_settings->ts());
     m_raster->setBitsPerTimeSlot(m_settings->bpts());
     m_raster->setFramesPerLine(m_settings->fpl());
     m_raster->setFileOffset(m_settings->offset());
     m_raster->setZoom(m_settings->zoom());
+    m_raster->setBitsPerPixels(m_settings->rbpp(), m_settings->gbpp(), m_settings->bbpp() );
+    calcSizes();
 }
 
 void CentralWidget::wheelEvent(QWheelEvent* event) {
@@ -97,18 +99,17 @@ void CentralWidget::calcSizes() {
         m_hscroll->setRange(0,0);
     }
     else {
-        size_t bitWidth = m_settings->bpts()*m_settings->ts()*m_settings->fpl();
-        size_t imgHeight = m_captureFile->sizebit() / bitWidth;
-        size_t imgWidth = bitWidth + m_settings->ts();
+        size_t vmax = m_raster->verticalMaximum();
+        size_t hmax = m_raster->horizontalMaximum();
         if( m_vscroll->maximum() ) {
             old_vscroll_ratio = (double)m_vscroll->value() / (double)m_vscroll->maximum();
         }
-        m_vscroll->setRange(0,imgHeight);
-        m_vscroll->setValue(old_vscroll_ratio*imgHeight);
+        m_vscroll->setRange(0,vmax);
+        m_vscroll->setValue(old_vscroll_ratio*vmax);
         if( m_hscroll->maximum() ) {
             old_hscroll_ratio = (double)m_hscroll->value() / (double)m_hscroll->maximum();
         }
-        m_hscroll->setRange(0,imgWidth);
-        m_hscroll->setValue(old_hscroll_ratio*imgWidth);
+        m_hscroll->setRange(0,hmax);
+        m_hscroll->setValue(old_hscroll_ratio*hmax);
     }
 }
