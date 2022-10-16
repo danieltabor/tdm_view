@@ -82,7 +82,7 @@ SettingsWidget::SettingsWidget(QWidget *parent):
     m_zoomw->setMinimum(1);
     m_zoomw->setMaximum(INT_MAX);
     m_zoomw->setValue(1);
-    connect(m_zoomw,SIGNAL(valueChanged(QString)),this,SLOT(updateHandler()));
+    connect(m_zoomw,SIGNAL(valueChanged(int)),this,SLOT(updateHandler()));
     layout->addWidget(m_zoomw,1,5);
 
     m_rbppl = new QLabel("Red bits per pixel:");
@@ -95,7 +95,7 @@ SettingsWidget::SettingsWidget(QWidget *parent):
     m_rbppw->setMaximum(32);
     m_rbppw->setValue(0);
     m_rbpp = 0;
-    connect(m_rbppw,SIGNAL(valueChanged(QString)),this,SLOT(updateHandler()));
+    connect(m_rbppw,SIGNAL(valueChanged(int)),this,SLOT(updateHandler()));
     layout->addWidget(m_rbppw,2,1);
 
     m_gbppl = new QLabel("Green bits per pixel:");
@@ -107,7 +107,7 @@ SettingsWidget::SettingsWidget(QWidget *parent):
     m_gbppw->setMaximum(32);
     m_gbppw->setValue(1);
     m_gbpp = 1;
-    connect(m_gbppw,SIGNAL(valueChanged(QString)),this,SLOT(updateHandler()));
+    connect(m_gbppw,SIGNAL(valueChanged(int)),this,SLOT(updateHandler()));
     layout->addWidget(m_gbppw,2,3);
 
     m_bbppl = new QLabel("Blue bits per pixel:");
@@ -119,7 +119,7 @@ SettingsWidget::SettingsWidget(QWidget *parent):
     m_bbppw->setMaximum(32);
     m_bbppw->setValue(0);
     m_bbpp = 0;
-    connect(m_bbppw,SIGNAL(valueChanged(QString)),this,SLOT(updateHandler()));
+    connect(m_bbppw,SIGNAL(valueChanged(int)),this,SLOT(updateHandler()));
     layout->addWidget(m_bbppw,2,5);
 
     m_updateButton = new QPushButton("Update",this);

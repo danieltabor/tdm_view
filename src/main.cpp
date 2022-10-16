@@ -32,20 +32,24 @@
 void usage(char* cmd) {
     fprintf(stderr,"Usage:\n");
     fprintf(stderr,"%s [-h] [-ts ts] [[-bpts bpts] | [-bpl bpl]] [-fpl fpl] [-offset offset]\n",cmd);
-    fprintf(stderr,"    [-zoom zoom] [-auto] [-tdm | -bin] [-invert] [-bit | -byte] [-file file]\n");
+    fprintf(stderr,"    [-zoom zoom] [-auto] [-tdm | -bin] [-invert] [-rbpp rbpp] [-gbpp gbpp]\n");
+    fprintf(stderr,"    [-bbpp bbpp] [-bit | -byte] [-file file]\n");
     fprintf(stderr,"\n");
     fprintf(stderr,"  ts     : Number of time slots (used with -tdm)\n");
     fprintf(stderr,"  bpts   : Bits per time slot (used with -tdm)\n");
     fprintf(stderr,"  bpl    : Bits per line (used with -bin)\n");
     fprintf(stderr,"  fpl    : Frames displayed per line (used with -tdm)\n");
-    fprintf(stderr,"  offset : Bit offset into file\n");
-    fprintf(stderr,"  zoom   : Zoom factor\n");
+    fprintf(stderr,"  offset : Bit offset into file (default 0)\n");
+    fprintf(stderr,"  zoom   : Zoom factor (default 1)\n");
     fprintf(stderr,"  auto   : Enable auto raster update\n");
     fprintf(stderr,"  tdm    : Set to Time Division Multiplex mode (default)\n");
     fprintf(stderr,"  bin    : Set to generic Binary mode\n");
     fprintf(stderr,"  invert : Invert bits\n");
+    fprintf(stderr,"  rbpp   : Red bits per pixel (default 0)\n");
+    fprintf(stderr,"  gbpp   : Green bits per pixel (default 1)\n");
+    fprintf(stderr,"  bbpp   : Blue bits per pixel (default 0)\n");
     fprintf(stderr,"  bit    : File is Bit per Byte\n");
-    fprintf(stderr,"  byte   : File is Byte per Byte\n");
+    fprintf(stderr,"  byte   : File is Byte per Byte (default)\n");
     fprintf(stderr,"  file   : File to analyze\n");
     exit(1);
 }
@@ -103,6 +107,15 @@ int main(int argc, char *argv[])
         }
         else if( strcmp(argv[i],"-auto") == 0) {
             w.setAutoUpdate(true);
+        }
+        else if( strcmp(argv[i],"-rbpp") == 0) {
+            w.settings()->setRbpp(atoi(argv[(i++)+1]));
+        }
+        else if( strcmp(argv[i],"-gbpp") == 0) {
+            w.settings()->setGbpp(atoi(argv[(i++)+1]));
+        }
+        else if( strcmp(argv[i],"-bbpp") == 0) {
+            w.settings()->setBbpp(atoi(argv[(i++)+1]));
         }
         else if( strcmp(argv[i],"-tdm") == 0) {
             w.setTdmMode();
