@@ -181,11 +181,17 @@ void SettingsWidget::updateEmit() {
     }
 
     if( m_rbppw->value() || m_gbppw->value() || m_bbppw->value() ) {
-        m_rbpp = m_rbppw->value();
+        if( m_rbppw->isVisible() ) {
+            m_rbpp = m_rbppw->value();
+        }
         m_rbppw->setPalette(*m_okpal);
-        m_gbpp = m_gbppw->value();
+        if( m_gbppw->isVisible() ) {
+            m_gbpp = m_gbppw->value();
+        }
         m_gbppw->setPalette(*m_okpal);
-        m_bbpp = m_bbppw->value();
+        if( m_bbppw->isVisible() ) {
+            m_bbpp = m_bbppw->value();
+        }
         m_bbppw->setPalette(*m_okpal);
     } else {
         m_rbppw->setPalette(*m_errpal);
